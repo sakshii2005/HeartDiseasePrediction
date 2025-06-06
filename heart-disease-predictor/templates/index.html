@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Heart Disease Predictor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body class="bg-light">
+  <div class="container py-5">
+    <div class="card shadow-lg mx-auto" style="max-width: 600px;">
+      <div class="card-body">
+        <h3 class="card-title mb-4 text-center text-danger">Heart Disease Predictor</h3>
+        <form id="heartForm" autocomplete="off">
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label for="age" class="form-label">Age</label>
+              <input type="number" id="age" name="age" class="form-control" min="1" max="120" required />
+            </div>
+
+            <div class="col-md-6">
+              <label for="sex" class="form-label">Gender</label>
+              <select id="sex" name="sex" class="form-select" required>
+                <option value="" disabled selected>Select gender</option>
+                <option value="1">Male</option>
+                <option value="0">Female</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="cp" class="form-label">Chest Pain Type</label>
+              <select id="cp" name="cp" class="form-select" required>
+                <option value="" disabled selected>Select chest pain</option>
+                <option value="0">Typical Angina</option>
+                <option value="1">Atypical Angina</option>
+                <option value="2">Non-anginal Pain</option>
+                <option value="3">Asymptomatic</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="trestbps" class="form-label">Resting Blood Pressure (mm Hg)</label>
+              <input type="number" id="trestbps" name="trestbps" class="form-control" min="50" max="250" required />
+            </div>
+
+            <div class="col-md-6">
+              <label for="chol" class="form-label">Cholesterol (mg/dl)</label>
+              <input type="number" id="chol" name="chol" class="form-control" min="100" max="600" required />
+            </div>
+
+            <div class="col-md-6">
+              <label for="fbs" class="form-label">Fasting Blood Sugar &gt; 120 mg/dl</label>
+              <select id="fbs" name="fbs" class="form-select" required>
+                <option value="" disabled selected>Select</option>
+                <option value="1">True</option>
+                <option value="0">False</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="restecg" class="form-label">Resting ECG Results</label>
+              <select id="restecg" name="restecg" class="form-select" required>
+                <option value="" disabled selected>Select ECG</option>
+                <option value="0">Normal</option>
+                <option value="1">ST-T wave abnormality</option>
+                <option value="2">Left ventricular hypertrophy</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="thalach" class="form-label">Max Heart Rate Achieved</label>
+              <input type="number" id="thalach" name="thalach" class="form-control" min="60" max="220" required />
+            </div>
+
+            <div class="col-md-6">
+              <label for="exang" class="form-label">Exercise Induced Angina</label>
+              <select id="exang" name="exang" class="form-select" required>
+                <option value="" disabled selected>Select</option>
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="oldpeak" class="form-label">ST Depression (Oldpeak)</label>
+              <input type="number" step="0.1" id="oldpeak" name="oldpeak" class="form-control" min="0" max="10" required />
+            </div>
+
+            <div class="col-md-6">
+              <label for="slope" class="form-label">ST Slope</label>
+              <select id="slope" name="slope" class="form-select" required>
+                <option value="" disabled selected>Select slope</option>
+                <option value="0">Upsloping</option>
+                <option value="1">Flat</option>
+                <option value="2">Downsloping</option>
+              </select>
+            </div>
+
+          </div>
+
+          <button id="submitBtn" type="submit" class="btn btn-danger w-100 mt-4">Predict</button>
+        </form>
+
+        <div class="mt-4">
+          <h4 id="resultText" class="text-center"></h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle (includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    const form = document.getElementById('heartForm');
+    const resultText = document.getElementById('resultText');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      resultText.innerText = '';
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Predicting...';
+
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((value, key) => {
+        data[key] = value;
+      });
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        resultText.innerText = result.result;
+        resultText.classList.toggle('text-danger', result.result.includes('Detected'));
+        resultText.classList.toggle('text-success', result.result.includes('No Heart Disease'));
+      } catch (err) {
+        resultText.innerText = '⚠️ Error! Try again later.';
+        resultText.classList.remove('text-success', 'text-danger');
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Predict';
+    });
+  </script>
+</body>
+</html>
